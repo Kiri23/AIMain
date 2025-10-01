@@ -1,0 +1,13 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main
+    container_name: litellm
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-supersecret}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./litellm.config.yaml:/app/config.yaml:ro
+    command: ["--host", "0.0.0.0", "--port", "4000", "--config", "/app/config.yaml"]
