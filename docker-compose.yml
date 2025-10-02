@@ -1,13 +1,26 @@
+version: "3.9"
 services:
   litellm:
-    build: .
-    container_name: litellm
+    image: ghcr.io/berriai/litellm:main-stable
     restart: unless-stopped
-    ports:
-      - "4000:4000"
     environment:
-      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-supersecret}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      LITELLM_SALT_KEY: ${LITELLM_SALT_KEY}
+      AZURE_API_KEY: ${AZURE_API_KEY}
+      AZURE_API_BASE: ${AZURE_API_BASE}
     volumes:
-      - ./litellm.config.yaml:/app/config.yaml:ro
-    command: ["--host", "0.0.0.0", "--port", "4000", "--config", "/app/config.yaml"]
+      - ./litellm_config.yaml:/app/config.yaml:ro
+    command: ["--port","4000","--config","/app/config.yaml"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.litellm.rule=Host(`ai.kiri231.com`)"
+      - "traefik.http.routers.litellm.entrypoints=websecure"
+      - "traefik.http.routers.litellm.tls.certresolver=letsencrypt"
+      - "traefik.http.services.litellm.loadbalancer.server.port=4000"
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
+    name: dokploy-network
